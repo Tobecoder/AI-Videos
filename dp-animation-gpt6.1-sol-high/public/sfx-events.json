@@ -1,0 +1,346 @@
+{
+  "rate": 48000,
+  "channels": 2,
+  "seconds": 30,
+  "peak": 0.34226906544147073,
+  "events": [
+    {
+      "kind": "tone",
+      "at": 0.12,
+      "freq": 420,
+      "end": 760,
+      "duration": 0.26
+    },
+    {
+      "kind": "tone",
+      "at": 0.48,
+      "freq": 1046,
+      "end": 1046,
+      "duration": 0.28
+    },
+    {
+      "kind": "tone",
+      "at": 0.83,
+      "freq": 1318,
+      "end": 1318,
+      "duration": 0.25
+    },
+    {
+      "kind": "whoosh",
+      "at": 3.5
+    },
+    {
+      "kind": "whoosh",
+      "at": 9
+    },
+    {
+      "kind": "whoosh",
+      "at": 14.5
+    },
+    {
+      "kind": "whoosh",
+      "at": 24
+    },
+    {
+      "kind": "tone",
+      "at": 3.74,
+      "freq": 250,
+      "end": 250,
+      "duration": 0.13
+    },
+    {
+      "kind": "tone",
+      "at": 3.8600000000000003,
+      "freq": 290,
+      "end": 290,
+      "duration": 0.13
+    },
+    {
+      "kind": "tone",
+      "at": 3.98,
+      "freq": 330,
+      "end": 330,
+      "duration": 0.13
+    },
+    {
+      "kind": "tone",
+      "at": 4.1,
+      "freq": 370,
+      "end": 370,
+      "duration": 0.13
+    },
+    {
+      "kind": "tone",
+      "at": 4.22,
+      "freq": 410,
+      "end": 410,
+      "duration": 0.13
+    },
+    {
+      "kind": "tone",
+      "at": 4.75,
+      "freq": 330,
+      "end": 690,
+      "duration": 0.23
+    },
+    {
+      "kind": "tone",
+      "at": 5.28,
+      "freq": 145,
+      "end": 90,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 5.6,
+      "freq": 395,
+      "end": 755,
+      "duration": 0.23
+    },
+    {
+      "kind": "tone",
+      "at": 6.13,
+      "freq": 175,
+      "end": 110,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 6.5,
+      "freq": 460,
+      "end": 820,
+      "duration": 0.23
+    },
+    {
+      "kind": "tone",
+      "at": 7.03,
+      "freq": 205,
+      "end": 130,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 7.3,
+      "freq": 525,
+      "end": 885,
+      "duration": 0.23
+    },
+    {
+      "kind": "tone",
+      "at": 7.83,
+      "freq": 235,
+      "end": 150,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 9.25,
+      "freq": 500,
+      "end": 500,
+      "duration": 0.14
+    },
+    {
+      "kind": "tone",
+      "at": 9.67,
+      "freq": 455,
+      "end": 455,
+      "duration": 0.14
+    },
+    {
+      "kind": "tone",
+      "at": 10.09,
+      "freq": 410,
+      "end": 410,
+      "duration": 0.14
+    },
+    {
+      "kind": "tone",
+      "at": 10.51,
+      "freq": 365,
+      "end": 365,
+      "duration": 0.14
+    },
+    {
+      "kind": "tone",
+      "at": 10.93,
+      "freq": 320,
+      "end": 320,
+      "duration": 0.14
+    },
+    {
+      "kind": "tone",
+      "at": 11.55,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 11.63,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 12.15,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 12.23,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 12.75,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 12.83,
+      "freq": 740,
+      "end": 740,
+      "duration": 0.17
+    },
+    {
+      "kind": "tone",
+      "at": 15.15,
+      "freq": 523.25,
+      "end": 523.25,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 16,
+      "freq": 587.33,
+      "end": 587.33,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 17.2,
+      "freq": 659.25,
+      "end": 659.25,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 18.4,
+      "freq": 783.99,
+      "end": 783.99,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 19.5,
+      "freq": 880,
+      "end": 880,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 20.45,
+      "freq": 1046.5,
+      "end": 1046.5,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 21.25,
+      "freq": 1174.66,
+      "end": 1174.66,
+      "duration": 0.32
+    },
+    {
+      "kind": "tone",
+      "at": 21.9,
+      "freq": 1318.51,
+      "end": 1318.51,
+      "duration": 0.75
+    },
+    {
+      "kind": "tone",
+      "at": 21.9,
+      "freq": 523.25,
+      "end": 523.25,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 21.9,
+      "freq": 659.25,
+      "end": 659.25,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 21.9,
+      "freq": 783.99,
+      "end": 783.99,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 21.9,
+      "freq": 1046.5,
+      "end": 1046.5,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 24.25,
+      "freq": 659.25,
+      "end": 659.25,
+      "duration": 0.3
+    },
+    {
+      "kind": "tone",
+      "at": 24.9,
+      "freq": 783.99,
+      "end": 783.99,
+      "duration": 0.3
+    },
+    {
+      "kind": "tone",
+      "at": 25.55,
+      "freq": 1046.5,
+      "end": 1046.5,
+      "duration": 0.3
+    },
+    {
+      "kind": "tone",
+      "at": 26.65,
+      "freq": 261.63,
+      "end": 261.63,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 26.65,
+      "freq": 392,
+      "end": 392,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 26.65,
+      "freq": 523.25,
+      "end": 523.25,
+      "duration": 1.1
+    },
+    {
+      "kind": "tone",
+      "at": 26.65,
+      "freq": 659.25,
+      "end": 659.25,
+      "duration": 1.1
+    }
+  ]
+}
