@@ -1,0 +1,1102 @@
+
+"use strict";
+/* ============================== 基础设置 ============================== */
+const W = 1280, H = 720, DURATION = 30;
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+cv.width = W * DPR; cv.height = H * DPR;
+ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+const COL = {
+  cyan:   '#22d3ee',   // i-1
+  pink:   '#f472b6',   // i-2
+  yellow: '#fbbf24',   // 当前
+  green:  '#34d399',
+  text:   '#e8f2ff',
+  dim:    '#7c97ad',
+  faint:  '#3a4f63',
+  bg:     '#0a1220'
+};
+const FONT = '"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,sans-serif';
+const MONO = '"SF Mono","JetBrains Mono",Consolas,"Courier New",monospace';
+
+/* ============================== 工具函数 ============================== */
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const lerp = (a, b, k) => a + (b - a) * k;
+const seg = (t, a, b) => clamp01((t - a) / (b - a));
+const easeOutCubic = k => 1 - Math.pow(1 - k, 3);
+const easeInCubic  = k => k * k * k;
+const easeOutBack  = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+const easeOutQuint = k => 1 - Math.pow(1 - k, 5);
+const smooth = k => k * k * (3 - 2 * k);
+
+function setFont(size, weight = 600, mono = false) {
+  ctx.font = `${weight} ${size}px ${mono ? MONO : FONT}`;
+}
+function txt(s, x, y, o = {}) {
+  const { size = 24, weight = 600, color = COL.text, align = 'center', baseline = 'middle',
+          alpha = 1, glow = 0, glowColor = COL.cyan, ls = 0, mono = false } = o;
+  if (alpha <= 0.002) return;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  setFont(size, weight, mono);
+  ctx.textAlign = align; ctx.textBaseline = baseline;
+  ctx.fillStyle = color;
+  if (ls) ctx.letterSpacing = ls + 'px';
+  if (glow) { ctx.shadowColor = glowColor; ctx.shadowBlur = glow; }
+  ctx.fillText(s, x, y);
+  ctx.restore();
+}
+function rrect(x, y, w, h, r) {
+  r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function panel(x, y, w, h, r, tint, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  const g = ctx.createLinearGradient(x, y, x, y + h);
+  g.addColorStop(0, 'rgba(20,34,52,0.92)');
+  g.addColorStop(1, 'rgba(12,21,34,0.92)');
+  rrect(x, y, w, h, r); ctx.fillStyle = g; ctx.fill();
+  ctx.strokeStyle = tint || 'rgba(120,170,210,0.22)';
+  ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.restore();
+}
+
+/* ============================== 音效引擎 ============================== */
+const Snd = {
+  ctx: null, out: null, ready: false,
+  init() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    const comp = this.ctx.createDynamicsCompressor();
+    comp.threshold.value = -16; comp.knee.value = 22; comp.ratio.value = 3.2;
+    comp.attack.value = 0.004; comp.release.value = 0.22;
+    this.out = this.ctx.createGain();
+    this.out.gain.value = 0.5;
+    this.out.connect(comp); comp.connect(this.ctx.destination);
+    this.ready = true;
+  },
+  now() { return this.ctx ? this.ctx.currentTime : 0; },
+  env(g, t0, a, d, peak) {
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0003), t0 + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + a + d);
+  },
+  tone(type, f0, f1, dur, vol, delay = 0.012, attack = 0.008) {
+    if (!this.ready) return;
+    const c = this.ctx, t0 = c.currentTime + delay;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t0);
+    if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(f1, 24), t0 + dur);
+    this.env(g, t0, attack, dur, vol);
+    o.connect(g); g.connect(this.out);
+    o.start(t0); o.stop(t0 + attack + dur + 0.06);
+  },
+  noise(dur, vol, f0, f1, type = 'bandpass', q = 1.2, delay = 0.012) {
+    if (!this.ready) return;
+    const c = this.ctx, t0 = c.currentTime + delay;
+    const len = Math.max(1, Math.ceil(c.sampleRate * dur));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const s = c.createBufferSource(); s.buffer = buf;
+    const f = c.createBiquadFilter(); f.type = type; f.Q.value = q;
+    f.frequency.setValueAtTime(f0, t0);
+    f.frequency.exponentialRampToValueAtTime(Math.max(f1, 60), t0 + dur);
+    const g = c.createGain(); this.env(g, t0, 0.006, dur, vol);
+    s.connect(f); f.connect(g); g.connect(this.out);
+    s.start(t0); s.stop(t0 + dur + 0.05);
+  },
+  /* 语义音效 */
+  pop(freq = 660, vol = 0.15) {
+    this.tone('sine', freq, freq * 1.02, 0.20, vol, 0.01, 0.004);
+    this.tone('triangle', freq * 2, freq * 2, 0.08, vol * 0.3, 0.01, 0.003);
+  },
+  jump() {
+    this.tone('sine', 340, 760, 0.15, 0.115, 0.008, 0.006);
+    this.noise(0.06, 0.035, 1600, 3200, 'highpass', 0.8);
+  },
+  land() {
+    this.tone('sine', 210, 88, 0.13, 0.19, 0.005, 0.003);
+    this.noise(0.08, 0.05, 700, 180, 'lowpass', 0.7);
+  },
+  whoosh(up = true) {
+    if (!up) { this.noise(0.42, 0.10, 2400, 300, 'bandpass', 0.9); return; }
+    this.noise(0.42, 0.10, 320, 2600, 'bandpass', 0.9);
+  },
+  rise(i) { this.pop(300 * Math.pow(1.14, i), 0.10); },
+  note(freq, vol = 0.13) {
+    this.tone('sine', freq, freq, 0.42, vol, 0.008, 0.006);
+    this.tone('sine', freq * 3, freq * 3, 0.16, vol * 0.16, 0.008, 0.004);
+    this.tone('triangle', freq / 2, freq / 2, 0.26, vol * 0.22, 0.008, 0.006);
+  },
+  chord(freqs, vol = 0.10) {
+    freqs.forEach((f, i) => {
+      this.tone('sine', f, f, 1.5, vol, 0.02 + i * 0.02, 0.03);
+      this.tone('triangle', f * 2, f * 2, 0.9, vol * 0.16, 0.02 + i * 0.02, 0.03);
+    });
+  },
+  ping(freq = 1200, vol = 0.10) {
+    this.tone('sine', freq, freq * 1.5, 0.42, vol, 0.008, 0.004);
+  }
+};
+
+/* ============================== 时间轴常量 ============================== */
+const T_TITLE = 0.0, T_STAIR = 3.5, T_REC = 9.0, T_DP = 14.5, T_CARD = 24.0;
+
+/* 爬楼梯 */
+const STAIR = { x0: 330, w: 120, baseY: 580, h: 72, n: 5 };
+const stepTop = i => STAIR.baseY - STAIR.h * (i + 1);
+const stepCx  = i => STAIR.x0 + i * STAIR.w + STAIR.w / 2;
+const R = 22;
+const ballPos = [
+  { x: STAIR.x0 - 62, y: STAIR.baseY - 26 },
+  { x: stepCx(0), y: stepTop(0) - 26 },
+  { x: stepCx(2), y: stepTop(2) - 26 },
+  { x: stepCx(3), y: stepTop(3) - 26 },
+  { x: stepCx(4), y: stepTop(4) - 26 }
+];
+const JUMPS = [
+  { from: 0, to: 1, t0: 3.95, t1: 4.80, h: 108, label: '+1' },
+  { from: 1, to: 2, t0: 5.05, t1: 6.10, h: 150, label: '+2' },
+  { from: 2, to: 3, t0: 6.35, t1: 7.12, h: 98,  label: '+1' },
+  { from: 3, to: 4, t0: 7.35, t1: 8.15, h: 96,  label: '+1' }
+];
+
+/* 递归树 */
+function buildTree() {
+  const nodes = [], edges = [];
+  (function rec(val, level, x, spread) {
+    const id = nodes.length;
+    nodes.push({ val, level, x, y: 178 + level * 104, id, t: 0 });
+    if (val >= 2 && level < 3) {
+      const cs = spread / 2;
+      const a = rec(val - 1, level + 1, x - cs, cs);
+      const b = rec(val - 2, level + 1, x + cs, cs);
+      edges.push([id, a], [id, b]);
+    }
+    return id;
+  })(5, 0, 640, 520);
+  const lvlT = [9.30, 10.05, 10.80, 11.50];
+  const cnt = {};
+  nodes.forEach(n => { cnt[n.level] = (cnt[n.level] || 0); n.t = lvlT[n.level] + cnt[n.level] * 0.045; cnt[n.level]++; });
+  return { nodes, edges };
+}
+const TREE = buildTree();
+
+/* DP 填表 */
+const DP = [1, 1, 2, 3, 5, 8, 13, 21];
+const CELL_W = 108, CELL_H = 98, CELL_GAP = 12, TABLE_Y = 324;
+const TABLE_X = (W - (DP.length * CELL_W + (DP.length - 1) * CELL_GAP)) / 2;
+const cellX = i => TABLE_X + i * (CELL_W + CELL_GAP);
+const DP_TIMES = [15.05, 16.35, 17.55, 18.60, 19.50, 20.30, 21.00, 21.60];
+const PENTA = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5];
+
+/* 汇总卡片 */
+const CARDS = [
+  { t: 24.45, no: '1', title: '定义状态', body: ['dp[i] = 走到第 i 阶', '的走法总数'], color: COL.green },
+  { t: 25.00, no: '2', title: '状态转移', body: ['dp[i] = dp[i-1] + dp[i-2]'], color: COL.cyan, formula: true },
+  { t: 25.55, no: '3', title: '初始值 + 填表', body: ['dp[0]=1, dp[1]=1', '从前往后递推'], color: COL.yellow }
+];
+
+/* ============================== 音效事件表 ============================== */
+const EVENTS = [];
+const ev = (t, fn) => EVENTS.push({ t, fn });
+let fired = [];
+
+function buildEvents() {
+  EVENTS.length = 0;
+  /* 标题 */
+  ev(0.10, () => { Snd.noise(0.55, 0.06, 260, 1400, 'bandpass', 0.8); });
+  ev(0.18, () => Snd.pop(523.25, 0.16));
+  ev(0.55, () => Snd.ping(1318.5, 0.055));
+  ev(1.05, () => Snd.ping(1567.98, 0.045));
+  ev(1.90, () => Snd.ping(1760, 0.035));
+
+  /* 台阶升起 */
+  for (let i = 0; i < STAIR.n; i++) ev(3.62 + i * 0.28, () => Snd.rise(i));
+
+  /* 跳跃 & 落地 */
+  JUMPS.forEach(j => {
+    ev(j.t0, () => Snd.jump());
+    ev(j.t1, () => Snd.land());
+  });
+
+  /* 转场 → 递归树 */
+  ev(8.85, () => Snd.whoosh(false));
+
+  /* 树分层生长 */
+  [9.30, 10.05, 10.80, 11.50].forEach((t, i) => ev(t, () => Snd.pop(392 * Math.pow(1.16, i), 0.11)));
+
+  /* 重复子问题高亮 */
+  ev(12.12, () => Snd.ping(1174.66, 0.09));
+  ev(12.36, () => Snd.ping(1396.91, 0.085));
+  ev(12.60, () => Snd.chord([196, 246.94, 293.66], 0.055));
+
+  /* 转场 → DP */
+  ev(14.15, () => Snd.whoosh(true));
+
+  /* 填表 */
+  DP_TIMES.forEach((t, i) => {
+    if (i >= 2) ev(t - 0.48, () => Snd.noise(0.22, 0.045, 900 + i * 90, 2400, 'bandpass', 1.4));
+    if (i === DP_TIMES.length - 1) {
+      ev(t - 0.02, () => Snd.chord([523.25, 659.25, 783.99, 1046.5], 0.11));
+    } else {
+      ev(t, () => Snd.note(PENTA[i], 0.125));
+    }
+  });
+  ev(23.15, () => Snd.note(1567.98, 0.07));
+
+  /* 卡片 */
+  ev(24.10, () => Snd.whoosh(true));
+  CARDS.forEach((c, i) => ev(c.t, () => Snd.pop([523.25, 659.25, 783.99][i], 0.13)));
+
+  /* 收尾和弦 */
+  ev(28.55, () => Snd.chord([523.25, 659.25, 783.99, 1046.5], 0.075));
+
+  fired = new Array(EVENTS.length).fill(false);
+}
+
+function fireAudio(t) {
+  for (let i = 0; i < EVENTS.length; i++) {
+    if (!fired[i] && t >= EVENTS[i].t) {
+      fired[i] = true;
+      try { EVENTS[i].fn(); } catch (e) { /* 忽略单次音频异常 */ }
+    }
+  }
+}
+function resetFiredUpTo(t) {
+  fired = EVENTS.map(e => e.t < t);
+}
+
+/* ============================== 背景 ============================== */
+const FIB = ['1', '1', '2', '3', '5', '8', '13', '21', '34', '55', '89', '144', '233'];
+const FLOATS = [];
+(function seed() {
+  let s = 20261023;
+  const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  for (let i = 0; i < 24; i++) {
+    FLOATS.push({
+      x: rnd() * 1280, y: rnd() * 800,
+      s: 22 + rnd() * 66, v: 5 + rnd() * 15,
+      a: 0.035 + rnd() * 0.065,
+      ph: rnd() * 6.28,
+      txt: FIB[i % FIB.length],
+      col: [COL.cyan, COL.pink, COL.yellow, COL.green][Math.floor(rnd() * 4)]
+    });
+  }
+})();
+
+function drawBackground(t) {
+  const g = ctx.createRadialGradient(640, 300, 60, 640, 380, 940);
+  g.addColorStop(0, '#0e1a2c');
+  g.addColorStop(0.55, '#080e19');
+  g.addColorStop(1, '#04060c');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.fillStyle = '#16283d';
+  for (let x = 32; x < W; x += 64) for (let y = 32; y < H; y += 64) ctx.fillRect(x, y, 2, 2);
+  ctx.restore();
+
+  const boost = t < 3.6 ? 1.35 : 1;
+  ctx.save();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const f of FLOATS) {
+    const y = ((f.y - f.v * t) % 820 + 820) % 820 - 46;
+    ctx.globalAlpha = f.a * boost * (0.72 + 0.28 * Math.sin(t * 0.9 + f.ph));
+    ctx.fillStyle = f.col;
+    setFont(f.s, 600, true);
+    ctx.fillText(f.txt, f.x, y);
+  }
+  ctx.restore();
+}
+
+function drawSweeps(t) {
+  const marks = [3.5, 9.0, 14.5, 24.0];
+  for (const m of marks) {
+    const p = (t - (m - 0.28)) / 0.56;
+    if (p < 0 || p > 1) continue;
+    const x = -260 + p * 1800;
+    const g = ctx.createLinearGradient(x - 340, 0, x + 340, 0);
+    const a = 0.13 * Math.sin(Math.PI * p);
+    g.addColorStop(0, 'rgba(120,220,255,0)');
+    g.addColorStop(0.5, `rgba(150,235,255,${a})`);
+    g.addColorStop(1, 'rgba(120,220,255,0)');
+    ctx.save(); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.restore();
+  }
+}
+
+/* ============================== 0 – 3.5s 标题 ============================== */
+function drawTitle(t) {
+  if (t > 3.7) return;
+  const fade = t < 3.02 ? 1 : 1 - seg(t, 3.02, 3.5);
+  if (fade <= 0.002) return;
+  const rise = seg(t, 3.0, 3.5) * -26;
+
+  /* 波纹 */
+  ctx.save();
+  for (let i = 0; i < 5; i++) {
+    const rt = t - 0.16 - i * 0.30;
+    if (rt < 0 || rt > 2.0) continue;
+    const p = rt / 2.0;
+    ctx.beginPath();
+    ctx.arc(640, 340, 70 + easeOutQuint(p) * 460, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(34,211,238,${0.30 * (1 - p) * fade})`;
+    ctx.lineWidth = 2.4 * (1 - p) + 0.6;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(640, 340, 42 + easeOutQuint(p) * 330, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(244,114,182,${0.16 * (1 - p) * fade})`;
+    ctx.lineWidth = 1.6 * (1 - p) + 0.4;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const k = seg(t, 0.10, 0.80);
+  const s = 0.74 + 0.26 * easeOutBack(k);
+
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.translate(640, 340); ctx.scale(s, s); ctx.translate(-640, -340 + rise);
+
+  /* 顶部小标 */
+  txt('ALGORITHM · 可视化', 640, 232, { size: 13, weight: 600, color: '#4d7290', ls: 6, alpha: clamp01(k * 1.4) });
+
+  /* 主标题 */
+  const grad = ctx.createLinearGradient(300, 0, 980, 0);
+  grad.addColorStop(0, '#22d3ee');
+  grad.addColorStop(0.5, '#e8f6ff');
+  grad.addColorStop(1, '#f472b6');
+  ctx.save();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  setFont(98, 800);
+  ctx.letterSpacing = '10px';
+  ctx.shadowColor = 'rgba(34,211,238,0.55)';
+  ctx.shadowBlur = 44;
+  ctx.fillStyle = grad;
+  ctx.fillText('动态规划', 646, 342);
+  ctx.restore();
+
+  /* 副标题 */
+  const s2 = seg(t, 0.55, 1.05);
+  if (s2 > 0) {
+    ctx.save();
+    ctx.globalAlpha *= s2;
+    const w = 46 + 0 * s2;
+    const y = 424 + (1 - easeOutCubic(s2)) * 14;
+    ctx.strokeStyle = 'rgba(120,190,230,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(470, y); ctx.lineTo(530, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(750, y); ctx.lineTo(810, y); ctx.stroke();
+    txt('30 秒入门', 640, y, { size: 30, weight: 700, color: COL.yellow, ls: 8, glow: 16, glowColor: 'rgba(251,191,36,0.55)' });
+    ctx.restore();
+  }
+  ctx.restore();
+
+  /* 底部提示 */
+  const s3 = seg(t, 1.5, 2.0);
+  txt('青 = i-1   粉 = i-2   黄 = 当前', 640, 560, {
+    size: 14, weight: 500, color: '#5d7d95', ls: 2, alpha: s3 * fade * 0.9
+  });
+}
+
+/* ============================== 3.5 – 9s 爬楼梯 ============================== */
+function ballState(t) {
+  for (const j of JUMPS) {
+    if (t < j.t0) break;
+    if (t <= j.t1) {
+      const p = (t - j.t0) / (j.t1 - j.t0);
+      const e = smooth(p);
+      const x = lerp(ballPos[j.from].x, ballPos[j.to].x, e);
+      const y = lerp(ballPos[j.from].y, ballPos[j.to].y, e) - Math.sin(Math.PI * p) * j.h;
+      const st = Math.abs(Math.cos(Math.PI * p));
+      return { x, y, sx: 1 - 0.075 * st, sy: 1 + 0.105 * st, air: true, jump: j, landed: -1 };
+    }
+    const dt = t - j.t1;
+    if (dt < 0.28) {
+      const q = dt / 0.28;
+      const sq = Math.sin(Math.PI * q);
+      return { x: ballPos[j.to].x, y: ballPos[j.to].y + 7 * sq, sx: 1 + 0.34 * sq, sy: 1 - 0.32 * sq, air: false, jump: null, landed: j.to };
+    }
+  }
+  return { x: ballPos[0].x, y: ballPos[0].y, sx: 1, sy: 1, air: false, jump: null, landed: -1 };
+}
+
+function drawStairs(t) {
+  const a = seg(t, 3.5, 3.82) * (1 - seg(t, 8.68, 9.08));
+  if (a <= 0.002) return;
+  ctx.save();
+  ctx.globalAlpha = a;
+
+  /* 标题 */
+  const ta = seg(t, 3.62, 4.1);
+  txt('问题引入 · 爬楼梯', 640, 108, { size: 26, weight: 700, color: COL.text, ls: 2, alpha: ta });
+  txt('每次可以走 1 阶或 2 阶，走到第 5 阶有多少种走法？', 640, 146, {
+    size: 15, weight: 500, color: COL.dim, alpha: seg(t, 3.85, 4.3) * 0.95
+  });
+
+  /* 地面 */
+  const gg = ctx.createLinearGradient(230, 0, 1060, 0);
+  gg.addColorStop(0, 'rgba(90,130,160,0)');
+  gg.addColorStop(0.15, 'rgba(90,130,160,0.42)');
+  gg.addColorStop(0.85, 'rgba(90,130,160,0.42)');
+  gg.addColorStop(1, 'rgba(90,130,160,0)');
+  ctx.fillStyle = gg; ctx.fillRect(230, STAIR.baseY, 830, 1.6);
+
+  /* 台阶 */
+  for (let i = 0; i < STAIR.n; i++) {
+    const p = seg(t, 3.62 + i * 0.28, 3.62 + i * 0.28 + 0.56);
+    if (p <= 0) continue;
+    const e = easeOutCubic(p);
+    const top = stepTop(i);
+    const x = STAIR.x0 + i * STAIR.w;
+    const yTop = top + (1 - e) * 78;
+    const hgt = STAIR.baseY - yTop;
+    ctx.save();
+    ctx.globalAlpha *= e;
+    const g = ctx.createLinearGradient(0, yTop, 0, STAIR.baseY);
+    g.addColorStop(0, 'rgba(38,66,94,0.95)');
+    g.addColorStop(1, 'rgba(16,27,42,0.95)');
+    rrect(x, yTop, STAIR.w - 4, hgt, 8);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = 'rgba(120,180,215,0.28)'; ctx.lineWidth = 1.2; ctx.stroke();
+    /* 顶面高光 */
+    const tg = ctx.createLinearGradient(x, top, x + STAIR.w, top);
+    tg.addColorStop(0, 'rgba(34,211,238,0.55)');
+    tg.addColorStop(1, 'rgba(34,211,238,0.10)');
+    ctx.fillStyle = tg;
+    ctx.fillRect(x + 2, yTop + 1, STAIR.w - 8, 2.5);
+    /* 阶数标号 */
+    txt(String(i + 1), x + STAIR.w / 2 - 2, top + 30, {
+      size: 15, weight: 700, color: 'rgba(150,200,230,0.42)', mono: true
+    });
+    ctx.restore();
+  }
+
+  /* 目标旗 */
+  const fa = seg(t, 4.3, 4.8);
+  if (fa > 0) {
+    const tx = stepCx(4), ty = stepTop(4);
+    ctx.save();
+    ctx.globalAlpha *= fa;
+    ctx.strokeStyle = 'rgba(251,191,36,0.8)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx, ty - 46); ctx.stroke();
+    ctx.beginPath();
+    const wave = Math.sin(t * 6) * 3;
+    ctx.moveTo(tx, ty - 46);
+    ctx.quadraticCurveTo(tx + 16, ty - 40 + wave, tx + 30, ty - 36);
+    ctx.quadraticCurveTo(tx + 16, ty - 30 + wave, tx, ty - 26);
+    ctx.closePath();
+    ctx.fillStyle = COL.yellow; ctx.fill();
+    ctx.restore();
+  }
+
+  /* 小球 */
+  const b = ballState(t);
+  const ba = seg(t, 3.75, 4.0);
+  if (ba > 0) {
+    /* 影子 */
+    const groundY = (() => {
+      if (b.air && b.jump) return Math.max(ballPos[b.jump.from].y, ballPos[b.jump.to].y) + 26;
+      return b.y + 26;
+    })();
+    const sh = 0.30 * clamp01(1 - Math.abs(groundY - (b.y + 26)) / 200);
+    ctx.save();
+    ctx.globalAlpha *= ba * sh * 1.6;
+    ctx.fillStyle = '#020509';
+    ctx.beginPath(); ctx.ellipse(b.x, groundY + 2, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha *= ba;
+    ctx.translate(b.x, b.y);
+    ctx.rotate(Math.sin(t * 3.2) * 0.05);
+    ctx.scale(b.sx, b.sy);
+    const bg = ctx.createRadialGradient(-7, -8, 3, 0, 0, R + 4);
+    bg.addColorStop(0, '#fff6d8');
+    bg.addColorStop(0.35, COL.yellow);
+    bg.addColorStop(1, '#e08a12');
+    ctx.shadowColor = 'rgba(251,191,36,0.65)'; ctx.shadowBlur = 26;
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.fillStyle = bg; ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha *= ba * 0.85;
+    ctx.beginPath(); ctx.arc(b.x - 7, b.y - 8, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
+    ctx.restore();
+  }
+
+  /* 跳跃标签 */
+  for (const j of JUMPS) {
+    const p = seg(t, j.t0, j.t1);
+    if (p <= 0 || p >= 1) continue;
+    const al = Math.sin(Math.PI * clamp01(p * 1.15));
+    const mx = lerp(ballPos[j.from].x, ballPos[j.to].x, smooth(p));
+    const my = lerp(ballPos[j.from].y, ballPos[j.to].y, smooth(p)) - Math.sin(Math.PI * p) * j.h;
+    txt(j.label, mx + 26, my - 4, {
+      size: 30, weight: 800, color: j.label === '+2' ? COL.pink : COL.cyan,
+      alpha: al, glow: 18, glowColor: j.label === '+2' ? 'rgba(244,114,182,0.7)' : 'rgba(34,211,238,0.7)'
+    });
+  }
+
+  /* 路径汇总 */
+  const sa = seg(t, 8.15, 8.6) * (1 - seg(t, 8.85, 9.05));
+  if (sa > 0) {
+    ctx.save();
+    ctx.globalAlpha *= sa;
+    const y = 300;
+    rrect(300, y - 26, 680, 54, 27);
+    ctx.fillStyle = 'rgba(12,26,40,0.82)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(52,211,153,0.42)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    setFont(17, 600);
+    ctx.fillStyle = COL.dim; ctx.fillText('走法', 330, y);
+    setFont(22, 800);
+    let x = 380;
+    const parts = [['+1', COL.cyan], ['+2', COL.pink], ['+1', COL.cyan], ['+1', COL.cyan]];
+    parts.forEach(([s, c], i) => {
+      ctx.fillStyle = c; ctx.fillText(s, x, y); x += ctx.measureText(s).width + 12;
+      if (i < 3) { ctx.fillStyle = '#3f5a70'; ctx.fillText('·', x, y); x += 22; }
+    });
+    setFont(20, 800); ctx.fillStyle = COL.green;
+    ctx.fillText('= 5 阶', x + 12, y);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/* ============================== 9 – 14.5s 递归树 ============================== */
+function drawRecursion(t) {
+  const a = seg(t, 9.02, 9.42) * (1 - seg(t, 14.05, 14.45));
+  if (a <= 0.002) return;
+  ctx.save();
+  ctx.globalAlpha = a;
+
+  txt('暴力递归', 640, 88, { size: 26, weight: 700, color: COL.text, ls: 2, alpha: seg(t, 9.15, 9.55) });
+  txt('f(n) = f(n-1) + f(n-2)', 640, 126, { size: 17, weight: 600, color: '#8fb0c8', alpha: seg(t, 9.3, 9.7) });
+
+  /* 连线 */
+  for (const [p, c] of TREE.edges) {
+    const pn = TREE.nodes[p], cn = TREE.nodes[c];
+    const al = seg(t, pn.t + 0.10, pn.t + 0.40);
+    if (al <= 0) continue;
+    const mx = (pn.x + cn.x) / 2, my = (pn.y + cn.y) / 2;
+    ctx.beginPath();
+    ctx.moveTo(pn.x, pn.y + 24);
+    ctx.quadraticCurveTo(mx, my + 8, cn.x, cn.y - 24);
+    ctx.strokeStyle = `rgba(110,160,195,${0.42 * al})`;
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+
+  /* 节点 */
+  for (const n of TREE.nodes) {
+    const p = seg(t, n.t, n.t + 0.42);
+    if (p <= 0) continue;
+    const sc = 0.4 + 0.6 * easeOutBack(p);
+    const isDup = n.val <= 3 && n.level >= 1;
+    const isLeaf = n.val <= 1;
+    const pulse = 0.5 + 0.5 * Math.sin((t - 12.1) * 7 - n.level * 0.6);
+    const hl = t > 12.1 && isDup ? pulse : 0;
+
+    /* 高亮光环 */
+    if (hl > 0.05) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 26 + 7 * hl, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(244,114,182,${0.55 * hl})`;
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(244,114,182,0.8)'; ctx.shadowBlur = 18;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(n.x, n.y); ctx.scale(sc, sc);
+    const base = isLeaf ? 'rgba(20,52,44,0.95)' : 'rgba(18,32,50,0.95)';
+    ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2);
+    ctx.fillStyle = base; ctx.fill();
+    ctx.lineWidth = 1.6;
+    if (isDup && t > 12.1) {
+      ctx.strokeStyle = `rgba(244,114,182,${0.55 + 0.4 * hl})`;
+      ctx.shadowColor = 'rgba(244,114,182,0.6)'; ctx.shadowBlur = 12;
+    } else if (isLeaf) {
+      ctx.strokeStyle = 'rgba(52,211,153,0.65)';
+    } else if (n.level === 0) {
+      ctx.strokeStyle = 'rgba(34,211,238,0.75)';
+      ctx.shadowColor = 'rgba(34,211,238,0.5)'; ctx.shadowBlur = 14;
+    } else {
+      ctx.strokeStyle = 'rgba(110,160,195,0.5)';
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    txt('f(' + n.val + ')', n.x, n.y + 0.5, {
+      size: 13, weight: 700, mono: true,
+      color: isLeaf ? COL.green : (isDup && t > 12.1 ? '#ffc7de' : '#cfe4f5'),
+      alpha: clamp01(p * 1.6)
+    });
+  }
+
+  /* 分层计数 */
+  const ca = seg(t, 11.9, 12.35);
+  if (ca > 0) {
+    txt('每一层节点数翻倍：1 → 2 → 4 → 8 → …', 640, 640, {
+      size: 16, weight: 600, color: '#9ab8ce', alpha: ca
+    });
+  }
+
+  /* O(2ⁿ) 徽章 */
+  const bp = seg(t, 12.38, 12.85);
+  if (bp > 0) {
+    const e = easeOutCubic(bp);
+    ctx.save();
+    ctx.globalAlpha *= e;
+    const bx = lerp(1210, 1000, e), by = 132, bw = 244, bh = 82;
+    rrect(bx, by, bw, bh, 14);
+    ctx.fillStyle = 'rgba(46,15,32,0.92)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(244,114,182,0.6)'; ctx.lineWidth = 1.5;
+    ctx.shadowColor = 'rgba(244,114,182,0.45)'; ctx.shadowBlur = 24;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    txt('O(2ⁿ)', bx + bw / 2, by + 34, {
+      size: 38, weight: 800, color: COL.pink, glow: 20, glowColor: 'rgba(244,114,182,0.7)'
+    });
+    txt('重复子问题 → 指数爆炸', bx + bw / 2, by + 64, { size: 13, weight: 600, color: '#d9a3bb' });
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+/* ============================== 14.5 – 24s DP 填表 ============================== */
+function drawArrow(x0, y0, x1, y1, bow, v, color, width) {
+  if (v <= 0.001) return;
+  const cx = (x0 + x1) / 2, cy = Math.min(y0, y1) - bow;
+  const q = s => {
+    const u = 1 - s;
+    return [u * u * x0 + 2 * u * s * cx + s * s * x1, u * u * y0 + 2 * u * s * cy + s * s * y1];
+  };
+  const end = clamp01(v);
+  const N = 26;
+  let prev = null, last = null;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round';
+  ctx.shadowColor = color; ctx.shadowBlur = 10;
+  ctx.beginPath();
+  for (let i = 0; i <= N; i++) {
+    const [px, py] = q((i / N) * end);
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    if (i === N - 1) prev = [px, py];
+    last = [px, py];
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  if (end > 0.9 && prev && last) {
+    const ang = Math.atan2(last[1] - prev[1], last[0] - prev[0]);
+    ctx.beginPath();
+    ctx.moveTo(last[0] + Math.cos(ang) * 3, last[1] + Math.sin(ang) * 3);
+    ctx.lineTo(last[0] - Math.cos(ang - 0.5) * 10, last[1] - Math.sin(ang - 0.5) * 10);
+    ctx.lineTo(last[0] - Math.cos(ang + 0.5) * 10, last[1] - Math.sin(ang + 0.5) * 10);
+    ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawDP(t) {
+  const a = seg(t, 14.6, 15.0) * (1 - seg(t, 23.62, 24.05));
+  if (a <= 0.002) return;
+  ctx.save();
+  ctx.globalAlpha = a;
+
+  /* 顶部公式 */
+  const hp = easeOutCubic(seg(t, 14.62, 15.1));
+  ctx.save();
+  ctx.globalAlpha *= hp;
+  ctx.translate(0, (1 - hp) * 16);
+  const fy = 206;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  setFont(30, 700);
+  const s1 = 'dp[i]', s2 = ' = ', s3 = 'dp[i-1]', s4 = ' + ', s5 = 'dp[i-2]';
+  const w1 = ctx.measureText(s1).width, w2 = ctx.measureText(s2).width,
+        w3 = ctx.measureText(s3).width, w4 = ctx.measureText(s4).width, w5 = ctx.measureText(s5).width;
+  const total = w1 + w2 + w3 + w4 + w5;
+  let x = 640 - total / 2;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = COL.text;    ctx.fillText(s1, x, fy); x += w1;
+  ctx.fillStyle = '#5d7c93';   ctx.fillText(s2, x, fy); x += w2;
+  ctx.fillStyle = COL.cyan;    ctx.shadowColor = 'rgba(34,211,238,.6)'; ctx.shadowBlur = 14; ctx.fillText(s3, x, fy); x += w3;
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#5d7c93';   ctx.fillText(s4, x, fy); x += w4;
+  ctx.fillStyle = COL.pink;    ctx.shadowColor = 'rgba(244,114,182,.6)'; ctx.shadowBlur = 14; ctx.fillText(s5, x, fy);
+  ctx.restore();
+
+  txt('自底向上填表 · 每个状态只算一次', 640, 250, {
+    size: 14, weight: 500, color: COL.dim, alpha: seg(t, 15.0, 15.45) * 0.95
+  });
+
+  /* 当前进度 */
+  let cur = -1;
+  for (let i = 0; i < DP_TIMES.length; i++) if (t >= DP_TIMES[i] - 0.5) cur = i;
+
+  /* 索引行 & 单元格 */
+  for (let i = 0; i < DP.length; i++) {
+    const ap = seg(t, 14.85 + i * 0.045, 15.15 + i * 0.045);
+    if (ap <= 0) continue;
+    const e = easeOutCubic(ap);
+    const x = cellX(i), y = TABLE_Y + (1 - e) * 18;
+    const filled = t >= DP_TIMES[i];
+    const pop = filled ? seg(t, DP_TIMES[i], DP_TIMES[i] + 0.36) : 0;
+    const isCur = (cur === i) && !filled || (filled && t < DP_TIMES[i] + 0.75);
+    const scale = filled ? (0.6 + 0.4 * easeOutBack(pop)) : 1;
+
+    /* 索引 */
+    txt(String(i), x + CELL_W / 2, TABLE_Y - 22, {
+      size: 13, weight: 600, color: isCur ? COL.yellow : '#55738a', mono: true, alpha: e,
+      glow: isCur ? 10 : 0, glowColor: 'rgba(251,191,36,.7)'
+    });
+
+    ctx.save();
+    ctx.globalAlpha *= e;
+    const cx = x + CELL_W / 2, cy = y + CELL_H / 2;
+    ctx.translate(cx, cy); ctx.scale(scale, scale); ctx.translate(-cx, -cy);
+
+    /* 单元格 */
+    rrect(x, y, CELL_W, CELL_H, 14);
+    if (filled) {
+      const g = ctx.createLinearGradient(x, y, x, y + CELL_H);
+      if (i <= 1) { g.addColorStop(0, 'rgba(24,64,52,0.95)'); g.addColorStop(1, 'rgba(14,38,32,0.95)'); }
+      else { g.addColorStop(0, 'rgba(26,42,62,0.95)'); g.addColorStop(1, 'rgba(14,24,38,0.95)'); }
+      ctx.fillStyle = g; ctx.fill();
+    } else {
+      ctx.fillStyle = 'rgba(14,23,36,0.72)'; ctx.fill();
+      ctx.setLineDash([5, 6]);
+    }
+    if (isCur && filled) {
+      ctx.strokeStyle = COL.yellow; ctx.lineWidth = 2.1;
+      ctx.shadowColor = 'rgba(251,191,36,0.75)'; ctx.shadowBlur = 22;
+    } else if (i <= 1 && filled) {
+      ctx.strokeStyle = 'rgba(52,211,153,0.55)'; ctx.lineWidth = 1.3;
+    } else if (filled) {
+      ctx.strokeStyle = 'rgba(120,175,210,0.5)'; ctx.lineWidth = 1.3;
+    } else {
+      ctx.strokeStyle = 'rgba(90,125,150,0.28)'; ctx.lineWidth = 1.1;
+    }
+    rrect(x, y, CELL_W, CELL_H, 14); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.setLineDash([]);
+
+    if (filled) {
+      const vc = i <= 1 ? COL.green : (isCur ? COL.yellow : COL.text);
+      txt(String(DP[i]), cx, cy + 2, {
+        size: 42, weight: 800, color: vc, mono: true,
+        glow: isCur ? 24 : 0, glowColor: 'rgba(251,191,36,0.7)'
+      });
+    }
+    ctx.restore();
+  }
+
+  /* 箭头 */
+  for (let i = 2; i < DP.length; i++) {
+    const v1 = seg(t, DP_TIMES[i] - 0.50, DP_TIMES[i] - 0.08);
+    if (v1 > 0) {
+      const x0 = cellX(i - 1) + CELL_W / 2, x1 = cellX(i) + CELL_W / 2 - 12;
+      drawArrow(x0, TABLE_Y - 4, x1, TABLE_Y - 6, 46, easeOutCubic(v1), COL.cyan, 2.4);
+    }
+    const v2 = seg(t, DP_TIMES[i] - 0.46, DP_TIMES[i] - 0.04);
+    if (v2 > 0) {
+      const x0 = cellX(i - 2) + CELL_W / 2, x1 = cellX(i) + CELL_W / 2 + 12;
+      drawArrow(x0, TABLE_Y - 4, x1, TABLE_Y - 6, 92, easeOutCubic(v2), COL.pink, 2.4);
+    }
+  }
+
+  /* 算式 */
+  let showIdx = -1;
+  for (let i = 0; i < DP_TIMES.length; i++) if (t >= DP_TIMES[i]) showIdx = i;
+  if (showIdx >= 0) {
+    const fresh = seg(t, DP_TIMES[showIdx], DP_TIMES[showIdx] + 0.30);
+    const sc = 0.85 + 0.15 * easeOutBack(fresh);
+    ctx.save();
+    ctx.globalAlpha *= clamp01(fresh * 2.2);
+    ctx.translate(640, 508); ctx.scale(sc, sc); ctx.translate(-640, -508);
+
+    if (showIdx === 0 || showIdx === 1) {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      setFont(30, 700);
+      ctx.fillStyle = COL.green;
+      ctx.shadowColor = 'rgba(52,211,153,0.5)'; ctx.shadowBlur = 16;
+      ctx.fillText('初始值：dp[' + showIdx + '] = 1', 640, 508);
+    } else {
+      const terms = [
+        ['dp[' + showIdx + ']', COL.text],
+        [' = ', '#5d7c93'],
+        [String(DP[showIdx - 1]), COL.cyan],
+        [' + ', '#5d7c93'],
+        [String(DP[showIdx - 2]), COL.pink],
+        [' = ', '#5d7c93'],
+        [String(DP[showIdx]), COL.yellow]
+      ];
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      setFont(38, 800, true);
+      let tw = 0;
+      for (const [s] of terms) tw += ctx.measureText(s).width;
+      let tx = 640 - tw / 2;
+      for (const [s, c] of terms) {
+        ctx.fillStyle = c;
+        if (c === COL.yellow) { ctx.shadowColor = 'rgba(251,191,36,0.7)'; ctx.shadowBlur = 20; }
+        else if (c === COL.cyan) { ctx.shadowColor = 'rgba(34,211,238,0.5)'; ctx.shadowBlur = 12; }
+        else if (c === COL.pink) { ctx.shadowColor = 'rgba(244,114,182,0.5)'; ctx.shadowBlur = 12; }
+        else ctx.shadowBlur = 0;
+        ctx.fillText(s, tx, 508);
+        tx += ctx.measureText(s).width;
+      }
+    }
+    ctx.restore();
+  }
+
+  /* 收尾结论 */
+  const ca = seg(t, 22.15, 22.65);
+  if (ca > 0) {
+    ctx.save();
+    ctx.globalAlpha *= ca;
+    const y = 572;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    setFont(18, 700);
+    ctx.fillStyle = COL.green;
+    ctx.shadowColor = 'rgba(52,211,153,0.45)'; ctx.shadowBlur = 16;
+    ctx.fillText('只填 n 个格子，每个格子一次加法 → 时间 O(n)，空间 O(n)', 640, y);
+    ctx.restore();
+  }
+
+  /* 图例 */
+  txt('青 · i-1     粉 · i-2     黄 · 当前格', 640, 646, {
+    size: 13, weight: 500, color: '#5d7d95', ls: 1, alpha: seg(t, 15.2, 15.7) * 0.9
+  });
+
+  ctx.restore();
+}
+
+/* ============================== 24 – 28.5s 三步走 ============================== */
+function drawCards(t) {
+  if (t < 24.0) return;
+  const a = seg(t, 24.02, 24.35);
+  if (a <= 0.002) return;
+
+  ctx.save();
+  ctx.globalAlpha = a;
+
+  const tp = easeOutCubic(seg(t, 24.1, 24.6));
+  ctx.save();
+  ctx.globalAlpha *= tp;
+  ctx.translate(0, (1 - tp) * 18);
+  txt('DP 三步走', 640, 150, { size: 44, weight: 800, color: COL.text, ls: 6, glow: 24, glowColor: 'rgba(34,211,238,0.45)' });
+  txt('定义状态 → 状态转移 → 初始值 + 填表', 640, 198, {
+    size: 15, weight: 500, color: COL.dim, ls: 2
+  });
+  ctx.restore();
+
+  const cw = 320, ch = 246, gap = 30;
+  const totalW = cw * 3 + gap * 2;
+  const x0 = (W - totalW) / 2;
+  const y0 = 268;
+
+  CARDS.forEach((c, i) => {
+    const p = seg(t, c.t, c.t + 0.55);
+    if (p <= 0) return;
+    const e = easeOutBack(clamp01(p * 1.1));
+    const x = x0 + i * (cw + gap);
+    const y = y0 + (1 - easeOutCubic(clamp01(p))) * 54;
+
+    ctx.save();
+    ctx.globalAlpha *= clamp01(p * 1.6);
+
+    const g = ctx.createLinearGradient(x, y, x, y + ch);
+    g.addColorStop(0, 'rgba(20,34,52,0.95)');
+    g.addColorStop(1, 'rgba(11,20,32,0.95)');
+    rrect(x, y, cw, ch, 18);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.strokeStyle = c.color + '66'; ctx.lineWidth = 1.4;
+    ctx.shadowColor = c.color + '44'; ctx.shadowBlur = 22;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    /* 序号 */
+    ctx.beginPath(); ctx.arc(x + 40, y + 44, 19, 0, Math.PI * 2);
+    ctx.fillStyle = c.color + '22'; ctx.fill();
+    ctx.strokeStyle = c.color; ctx.lineWidth = 1.6; ctx.stroke();
+    txt(c.no, x + 40, y + 45, { size: 18, weight: 800, color: c.color, mono: true });
+
+    txt(c.title, x + 72, y + 44, { size: 23, weight: 800, color: COL.text, align: 'left' });
+
+    /* 分隔线 */
+    ctx.beginPath(); ctx.moveTo(x + 26, y + 82); ctx.lineTo(x + cw - 26, y + 82);
+    ctx.strokeStyle = 'rgba(120,170,210,0.16)'; ctx.lineWidth = 1; ctx.stroke();
+
+    /* 正文 */
+    if (c.formula) {
+      ctx.save();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      setFont(21, 700, true);
+      const parts = [['dp[i]', COL.text], [' = ', '#5d7c93'], ['dp[i-1]', COL.cyan], [' + ', '#5d7c93'], ['dp[i-2]', COL.pink]];
+      let tw = 0; for (const [s] of parts) tw += ctx.measureText(s).width;
+      let tx = x + cw / 2 - tw / 2;
+      for (const [s, col] of parts) {
+        ctx.fillStyle = col;
+        if (col === COL.cyan) { ctx.shadowColor = 'rgba(34,211,238,.5)'; ctx.shadowBlur = 12; }
+        else if (col === COL.pink) { ctx.shadowColor = 'rgba(244,114,182,.5)'; ctx.shadowBlur = 12; }
+        else ctx.shadowBlur = 0;
+        ctx.fillText(s, tx, y + 128);
+        tx += ctx.measureText(s).width;
+      }
+      ctx.restore();
+      txt('当前格 = 前两格之和', x + cw / 2, y + 182, { size: 15, weight: 500, color: '#8fb0c8' });
+    } else {
+      c.body.forEach((line, li) => {
+        txt(line, x + cw / 2, y + 124 + li * 32, {
+          size: li === 0 ? 20 : 18, weight: li === 0 ? 700 : 500,
+          color: li === 0 ? '#dcecfa' : '#8fb0c8', mono: li === 0 && i === 0
+        });
+      });
+    }
+    ctx.restore();
+  });
+
+  /* 底部小结 */
+  const fa = seg(t, 27.0, 27.5);
+  if (fa > 0) {
+    txt('把大问题拆成有重叠的子问题，按顺序算一遍就够', 640, 588, {
+      size: 17, weight: 600, color: '#9ab8ce', ls: 1, alpha: fa
+    });
+  }
+
+  ctx.restore();
+}
+
+/* ============================== 收尾 ============================== */
+function drawEnd(t) {
+  if (t < 29.0) return;
+  const a = seg(t, 29.0, 29.7);
+  ctx.save();
+  const g = ctx.createRadialGradient(640, 360, 120, 640, 360, 720);
+  g.addColorStop(0, 'rgba(4,7,13,0)');
+  g.addColorStop(1, `rgba(4,7,13,${0.72 * a})`);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  txt('点击画面重播', 640, 660, { size: 14, weight: 600, color: '#7f9ab0', ls: 4, alpha: a * 0.9 });
+  ctx.restore();
+}
+
+/* ============================== 主循环 ============================== */
+let playing = false, started = false, elapsed = 0, lastNow = 0, finished = false;
+
+function render(t) {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  drawBackground(t);
+  drawTitle(t);
+  drawStairs(t);
+  drawRecursion(t);
+  drawDP(t);
+  drawCards(t);
+  drawSweeps(t);
+  drawEnd(t);
+}
+
+function frame(now) {
+  if (!lastNow) lastNow = now;
+  const dt = Math.min((now - lastNow) / 1000, 0.1);
+  lastNow = now;
+
+  if (playing) {
+    elapsed += dt;
+    if (elapsed >= DURATION) { elapsed = DURATION; playing = false; finished = true; updateHud(); }
+    else { fireAudio(elapsed); }
+  }
+  render(elapsed);
+  updateBar();
+  requestAnimationFrame(frame);
+}
+
+function fmt(s) {
+  const m = Math.floor(s / 60), r = Math.floor(s % 60);
+  return m + ':' + String(r).padStart(2, '0');
+}
+function updateBar() {
+  document.getElementById('fill').style.width = (elapsed / DURATION * 100).toFixed(2) + '%';
+  document.getElementById('time').textContent = fmt(elapsed) + ' / ' + fmt(DURATION);
+}
+function updateHud() {
+  document.getElementById('btnPlay').textContent = playing ? '❚❚' : '▶';
+}
+
+/* 交互 */
+const startMask = document.getElementById('start');
+document.getElementById('btnStart').addEventListener('click', () => {
+  Snd.init();
+  if (Snd.ctx && Snd.ctx.state === 'suspended') Snd.ctx.resume();
+  startMask.classList.add('hide');
+  setTimeout(() => { startMask.style.display = 'none'; }, 650);
+  started = true;
+  restart();
+});
+
+function restart() {
+  elapsed = 0; finished = false; playing = true;
+  resetFiredUpTo(-1);
+  if (Snd.ctx && Snd.ctx.state === 'suspended') Snd.ctx.resume();
+  updateHud();
+}
+
+document.getElementById('btnPlay').addEventListener('click', () => {
+  Snd.init();
+  if (Snd.ctx && Snd.ctx.state === 'suspended') Snd.ctx.resume();
+  if (elapsed >= DURATION) { restart(); return; }
+  playing = !playing;
+  updateHud();
+});
+document.getElementById('btnReplay').addEventListener('click', () => {
+  Snd.init();
+  if (Snd.ctx && Snd.ctx.state === 'suspended') Snd.ctx.resume();
+  restart();
+});
+document.getElementById('track').addEventListener('click', e => {
+  const r = e.currentTarget.getBoundingClientRect();
+  const p = clamp01((e.clientX - r.left) / r.width);
+  elapsed = p * DURATION;
+  resetFiredUpTo(elapsed);
+  finished = elapsed >= DURATION;
+  updateBar();
+});
+cv.addEventListener('click', () => { if (finished) restart(); });
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); document.getElementById('btnPlay').click(); }
+  if (e.key === 'r' || e.key === 'R') restart();
+});
+
+/* 启动 */
+buildEvents();
+render(0);
+updateBar();
+requestAnimationFrame(frame);
+
+/* 若用户直接在页面上点了画布外的开始按钮之外的区域，也允许音频解锁 */
+window.addEventListener('pointerdown', () => {
+  if (started) return;
+  Snd.init();
+  if (Snd.ctx && Snd.ctx.state === 'suspended') Snd.ctx.resume();
+}, { once: true });
