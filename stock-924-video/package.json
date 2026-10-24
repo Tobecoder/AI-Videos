@@ -1,0 +1,30 @@
+{
+  "name": "stock-924-video",
+  "version": "1.0.0",
+  "description": "924行情以来，我从赚1万到亏5万",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.536",
+    "remotion": "4.0.536",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "tts": "python scripts/tts.py",
+    "audio": "python scripts/gen_audio.py",
+    "dev": "remotion studio",
+    "render": "remotion render Stock924 out/924-赚1万到亏5万.mp4",
+    "lint": "tsc"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}
