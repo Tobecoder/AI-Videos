@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>《AI 到底改变了什么？》视觉风格参考面板</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #090b10;
+      color: #eef2f7;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      padding: 36px 40px 60px;
+      line-height: 1.6;
+    }
+    header {
+      max-width: 1320px;
+      margin: 0 auto 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 20px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .grid {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 28px;
+    }
+    .card {
+      background: #111520;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      cursor: zoom-in;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 184, 77, 0.55);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    }
+    .card img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+    }
+    .info {
+      padding: 20px 22px 24px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    .badge-a { background: rgba(0, 212, 255, 0.14); color: #38bdf8; }
+    .badge-b { background: rgba(251, 146, 60, 0.16); color: #fb923c; }
+    .badge-c { background: rgba(168, 85, 247, 0.16); color: #c084fc; }
+    .info h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .info p {
+      color: #9ca3af;
+      font-size: 13.5px;
+    }
+    #lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 6, 10, 0.92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 32px;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 94vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.85);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>《AI 到底改变了什么？》视觉风格参考面板（点击图片可放大）</h1>
+    <p>左侧展现设计 / 编程 / 剪辑的极速算力执行 · 右侧展现泡沫碎裂后不可替代的人类「想法」</p>
+  </header>
+
+  <main class="grid">
+    <article class="card" onclick="openImg('style-concepts/style-a-motion-graphics.jpg')">
+      <img src="style-concepts/style-a-motion-graphics.jpg" alt="风格 A" />
+      <div class="info">
+        <span class="badge badge-a">风格 A · Apple / Vox 级 MG</span>
+        <h2>极简高对比几何动态图形</h2>
+        <p>曜石黑微噪点底色 + 荧光青蓝锐利矢量 UI（贝塞尔曲线、代码窗、多轨剪辑波形），中段碎裂为黑白几何切片，右侧极简留白中生长出一笔琥珀暖金线条点亮灵感。</p>
+      </div>
+    </article>
+
+    <article class="card" onclick="openImg('style-concepts/style-b-cyber-sketch.jpg')">
+      <img src="style-concepts/style-b-cyber-sketch.jpg" alt="风格 B" />
+      <div class="info">
+        <span class="badge badge-b">风格 B · 跨媒介双界混搭</span>
+        <h2>赛博全息蓝图 × 手绘铅笔水彩</h2>
+        <p>AI 世界是冰冷精密的深蓝工程网格、3D 线框与自动化剪辑轨；人类想法世界直接撕开数字网格，露出温润米白画纸、铅笔排线与夕阳水彩晕染。</p>
+      </div>
+    </article>
+
+    <article class="card" onclick="openImg('style-concepts/style-c-3d-spatial.jpg')">
+      <img src="style-concepts/style-c-3d-spatial.jpg" alt="风格 C" />
+      <div class="info">
+        <span class="badge badge-c">风格 C · Three.js 空间剧场</span>
+        <h2>3D 空间毛玻璃与发光粒子星核</h2>
+        <p>电影级景深镜头穿梭于 3D 悬浮毛玻璃面板（海报矩阵、代码节点、剪辑波形轨），中段玻璃碎片在慢动作中凝滞，中央汇聚成温暖跳动的金色灵感核心。</p>
+      </div>
+    </article>
+  </main>
+
+  <div id="lightbox" onclick="this.classList.remove('open')">
+    <img id="lightboxImg" src="" alt="放大预览" />
+  </div>
+
+  <script>
+    function openImg(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+  </script>
+</body>
+</html>

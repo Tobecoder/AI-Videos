@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>《AI 到底改变了什么？》</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="theaterWrap">
+    <div id="stageContainer">
+      <div id="topHud">
+        <button id="audioHint" type="button">🔊 点击开启「云希男声口播 + 电影配乐」</button>
+      </div>
+
+      <!-- Layer 1: Clean 3D Depth Atmosphere -->
+      <div id="webglMount"></div>
+      <!-- Layer 2: Vector & Spatial Motion Layer -->
+      <canvas id="vectorCanvas"></canvas>
+      <!-- Layer 3: Cinema Vignette & Voiceover Subtitle -->
+      <canvas id="fgCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Playback & Chapter Scrubber -->
+  <div id="controlBar">
+    <div class="beat-row">
+      <button class="beat-pill active" data-time="0.00" type="button">① 奇点提问</button>
+      <button class="beat-pill" data-time="5.20" type="button">② 改变设计</button>
+      <button class="beat-pill" data-time="13.00" type="button">③ 改变编程</button>
+      <button class="beat-pill" data-time="20.20" type="button">④ 改变剪辑</button>
+      <button class="beat-pill" data-time="29.00" type="button">⑤ 踏平围墙</button>
+      <button class="beat-pill" data-time="37.80" type="button">⑥ 全能幻觉</button>
+      <button class="beat-pill" data-time="45.20" type="button">⑦ 褪色真相</button>
+      <button class="beat-pill" data-time="54.40" type="button">⑧ 双界分野</button>
+      <button class="beat-pill" data-time="62.60" type="button">⑨ 温度与留白</button>
+      <button class="beat-pill" data-time="72.40" type="button">⑩ 逆流灵光</button>
+      <button class="beat-pill" data-time="80.60" type="button">⑪ 升华金句</button>
+      <button class="beat-pill" data-time="87.80" type="button">⑫ 人机归位</button>
+      <button class="beat-pill" data-time="96.80" type="button">⑬ 灵魂火种</button>
+    </div>
+
+    <div class="transport-row">
+      <button id="playBtn" class="ctrl-btn" type="button">⏸ 暂停</button>
+      <button id="prevFrameBtn" class="ctrl-btn" title="上一帧 (←)" type="button">◀ 1帧</button>
+      <button id="nextFrameBtn" class="ctrl-btn" title="下一帧 (→)" type="button">1帧 ▶</button>
+
+      <input id="scrubber" type="range" min="0" max="102.0" step="0.005" value="0" />
+      <span id="timeReadout">0.00s / F000</span>
+
+      <button class="ctrl-btn speed-btn active" data-speed="1" type="button">1.0x</button>
+      <button class="ctrl-btn speed-btn" data-speed="0.5" type="button">0.5x</button>
+      <button class="ctrl-btn speed-btn" data-speed="0.2" type="button">0.2x</button>
+      <button id="muteBtn" class="ctrl-btn" type="button">🔊 声音</button>
+      <button id="fullscreenBtn" class="ctrl-btn" title="全屏沉浸观看 (F)" type="button">⛶ 全屏</button>
+    </div>
+  </div>
+
+  <script src="three.min.js"></script>
+  <script src="easing.js"></script>
+  <script src="voiceover-data.js"></script>
+  <script src="audio-engine.js"></script>
+  <script src="stage-3d.js"></script>
+  <script src="shots/s01-singularity.js"></script>
+  <script src="shots/s02-design.js"></script>
+  <script src="shots/s03-code.js"></script>
+  <script src="shots/s04-editing.js"></script>
+  <script src="shots/s05-walls.js"></script>
+  <script src="shots/s06-illusion.js"></script>
+  <script src="shots/s07-shatter.js"></script>
+  <script src="shots/s08-divide.js"></script>
+  <script src="shots/s09-warmth.js"></script>
+  <script src="shots/s10-upstream.js"></script>
+  <script src="shots/s11-thesis.js"></script>
+  <script src="shots/s12-helm.js"></script>
+  <script src="shots/s13-spark.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
