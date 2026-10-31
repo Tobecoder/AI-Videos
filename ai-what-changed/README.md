@@ -2,6 +2,7 @@
 
 基于 **Three.js (WebGL) + 高分 Canvas 2D + Web Audio API** 构建的 16:9 电影级一镜到底动态图形（Motion Graphics）短片。全片共 **6 幕 · 13 镜**，总时长 **`102.00 秒`（`60fps` 共 `6,120` 帧）**，支持首尾 `0.00px` 无缝无限循环。
 
+- [人机协作制作全过程复盘](../ai-what-changed.md)
 - [分镜总案与音画设计（成片定稿版）](./storyboard.md)
 - [三套视觉概念风格预览](./style-preview.html)
 
