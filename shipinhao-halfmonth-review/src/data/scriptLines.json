@@ -1,0 +1,493 @@
+[
+  {
+    "id": "s01_01",
+    "sceneId": "hook",
+    "stepIndex": 0,
+    "stepLabel": "实战复盘",
+    "displayText": "一条65秒的视频，观众平均看了64秒，跑了5.9万播放、503条评论——你猜视频号分成给了多少钱？",
+    "ttsText": "一条65秒的视频，观众平均看了64秒，跑了5.9万播放、503条评论，你猜视频号分成给了多少钱？",
+    "cue": "counter_race",
+    "subCues": [
+      { "match": "65", "cue": "s01_dur65" },
+      { "match": "64", "cue": "s01_watch64" },
+      { "match": "5.9", "cue": "s01_views59" },
+      { "match": "503", "cue": "s01_comm503" },
+      { "match": "分成", "cue": "s01_mystery" }
+    ]
+  },
+  {
+    "id": "s01_02",
+    "sceneId": "hook",
+    "stepIndex": 0,
+    "stepLabel": "实战复盘",
+    "displayText": "答案是：3块9毛3。",
+    "ttsText": "答案是，3块9毛3。",
+    "cue": "stamp_393",
+    "subCues": [
+      { "match": "3", "cue": "s01_hit393" }
+    ]
+  },
+  {
+    "id": "s01_03",
+    "sceneId": "hook",
+    "stepIndex": 0,
+    "stepLabel": "实战复盘",
+    "displayText": "我做视频号刚满半个月，涨了240粉，一共发了23条原创，累计播放15.8万多，总收益5块04。",
+    "ttsText": "我做视频号刚满半个月，涨了240粉，一共发了23条原创，累计播放15.8万多，总收益5块04。",
+    "cue": "summary_grid",
+    "subCues": [
+      { "match": "240", "cue": "s01_fans240" },
+      { "match": "23", "cue": "s01_posts23" },
+      { "match": "15.8", "cue": "s01_total158k" },
+      { "match": "5块", "cue": "s01_rev504" }
+    ]
+  },
+  {
+    "id": "s01_04",
+    "sceneId": "hook",
+    "stepIndex": 0,
+    "stepLabel": "实战复盘",
+    "displayText": "而我每做一条，都要花1到2个小时、外加5块钱左右的制作成本。",
+    "ttsText": "而我每做一条，都要花1到2个小时，外加5块钱左右的制作成本。",
+    "cue": "cost_badge",
+    "subCues": [
+      { "match": "1", "cue": "s01_timecost" },
+      { "match": "5块", "cue": "s01_moneycost" }
+    ]
+  },
+  {
+    "id": "s01_05",
+    "sceneId": "hook",
+    "stepIndex": 0,
+    "stepLabel": "实战复盘",
+    "displayText": "今天不画大饼，直接把后台全盘数据摊开，聊聊普通人用AI做视频号到底值不值得干。",
+    "ttsText": "今天不画大饼，直接把后台全盘数据摊开，聊聊普通人用AI做视频号到底值不值得干。",
+    "cue": "hook_outro",
+    "subCues": [
+      { "match": "值不值得", "cue": "s01_worth" }
+    ]
+  },
+  {
+    "id": "s02_01",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "先说说我做的赛道：AI图文故事集，用AI写文案，再生成这种固定手绘风的图文卡片。",
+    "ttsText": "先说说我做的赛道，AI图文故事集，用AI写文案，再生成这种固定手绘风的图文卡片。",
+    "cue": "show_cards",
+    "subCues": [
+      { "match": "写文案", "cue": "s02_writer" },
+      { "match": "手绘", "cue": "s02_cards_deal" }
+    ]
+  },
+  {
+    "id": "s02_02",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "其实我真正想做的，是你现在看到的这种知识分享动画。",
+    "ttsText": "其实我真正想做的，是你现在看到的这种知识分享动画。",
+    "cue": "ideal_niche",
+    "subCues": [
+      { "match": "知识", "cue": "s02_ideal_card" }
+    ]
+  },
+  {
+    "id": "s02_03",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "但说实话，我不会视频剪辑，哪怕全靠AI帮忙，做动画的时间和金钱门槛还是太高了。",
+    "ttsText": "但说实话，我不会视频剪辑，哪怕全靠AI帮忙，做动画的时间和金钱门槛还是太高了。",
+    "cue": "cost_barrier",
+    "subCues": [
+      { "match": "剪辑", "cue": "s02_tag_edit" },
+      { "match": "时间", "cue": "s02_tag_time" },
+      { "match": "金钱", "cue": "s02_tag_money" }
+    ]
+  },
+  {
+    "id": "s02_04",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "那为什么选图文故事？一方面我刷到这种走心故事自己也会看哭，说明它天生有情绪共鸣；",
+    "ttsText": "那为什么选图文故事？一方面我刷到这种走心故事自己也会看哭，说明它天生有情绪共鸣；",
+    "cue": "emotion_resonance",
+    "subCues": [
+      { "match": "图文", "cue": "s02_mvp_card" },
+      { "match": "看哭", "cue": "s02_tear" },
+      { "match": "共鸣", "cue": "s02_resonance" }
+    ]
+  },
+  {
+    "id": "s02_05",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "另一方面，拆解了很多爆款之后我发现：表达形式可以五花八门，但内容本身永远是最核心的。",
+    "ttsText": "另一方面，拆解了很多爆款之后我发现，表达形式可以五花八门，但内容本身永远是最核心的。",
+    "cue": "core_rule",
+    "subCues": [
+      { "match": "表达", "cue": "s02_form_bar" },
+      { "match": "内容", "cue": "s02_content_king" }
+    ]
+  },
+  {
+    "id": "s02_06",
+    "sceneId": "niche",
+    "stepIndex": 1,
+    "stepLabel": "选赛道",
+    "displayText": "所以现阶段我先舍弃了喜欢的高门槛形式，挑了一个能低成本、快速跑通的图文赛道先落地。",
+    "ttsText": "所以现阶段我先舍弃了喜欢的高门槛形式，挑了一个能低成本、快速跑通的图文赛道先落地。",
+    "cue": "mvp_choice",
+    "subCues": [
+      { "match": "舍弃", "cue": "s02_dim_ideal" },
+      { "match": "低成本", "cue": "s02_lock_mvp" }
+    ]
+  },
+  {
+    "id": "s03_01",
+    "sceneId": "traffic",
+    "stepIndex": 2,
+    "stepLabel": "推流机制",
+    "displayText": "我的主战场放在视频号，同时也会同步分发到其他平台。",
+    "ttsText": "我的主战场放在视频号，同时也会同步分发到其他平台。",
+    "cue": "platforms",
+    "subCues": [
+      { "match": "视频号", "cue": "s03_main_plat" },
+      { "match": "其他", "cue": "s03_sync_plats" }
+    ]
+  },
+  {
+    "id": "s03_02",
+    "sceneId": "traffic",
+    "stepIndex": 2,
+    "stepLabel": "推流机制",
+    "displayText": "很多人看视频号只要100粉就能开分成计划，觉得门槛特别低，其实这里有个大误区。",
+    "ttsText": "很多人看视频号只要100粉就能开分成计划，觉得门槛特别低，其实这里有个大误区。",
+    "cue": "threshold_myth",
+    "subCues": [
+      { "match": "100", "cue": "s03_100fans" },
+      { "match": "误区", "cue": "s03_myth_stamp" }
+    ]
+  },
+  {
+    "id": "s03_03",
+    "sceneId": "traffic",
+    "stepIndex": 2,
+    "stepLabel": "推流机制",
+    "displayText": "因为视频号的分成广告是挂在评论区的——得有人愿意点开评论、看到甚至点击广告，你才有收入。",
+    "ttsText": "因为视频号的分成广告是挂在评论区的，得有人愿意点开评论、看到甚至点击广告，你才有收入。",
+    "cue": "comment_ad",
+    "subCues": [
+      { "match": "评论区", "cue": "s03_comment_box" },
+      { "match": "点击", "cue": "s03_ad_pulse" }
+    ]
+  },
+  {
+    "id": "s03_04",
+    "sceneId": "traffic",
+    "stepIndex": 2,
+    "stepLabel": "推流机制",
+    "displayText": "再看推流机制，我发了23条，基本每条都能上1000播放；只要过了500基础门槛，官方就会阶梯式往外推。",
+    "ttsText": "再看推流机制，我发了23条，基本每条都能上1000播放；只要过了500基础门槛，官方就会阶梯式往外推。",
+    "cue": "funnel_500",
+    "subCues": [
+      { "match": "1000", "cue": "s03_step1" },
+      { "match": "500", "cue": "s03_step2" },
+      { "match": "阶梯", "cue": "s03_step3" }
+    ]
+  },
+  {
+    "id": "s03_05",
+    "sceneId": "traffic",
+    "stepIndex": 2,
+    "stepLabel": "推流机制",
+    "displayText": "但能不能推爆，关键看完播、点赞、分享、红心，以及现阶段最重要的评论互动。",
+    "ttsText": "但能不能推爆，关键看完播、点赞、分享、红心，以及现阶段最重要的评论互动。",
+    "cue": "key_signals",
+    "subCues": [
+      { "match": "完播", "cue": "s03_sig_watch" },
+      { "match": "点赞", "cue": "s03_sig_like" },
+      { "match": "分享", "cue": "s03_sig_share" },
+      { "match": "红心", "cue": "s03_sig_heart" },
+      { "match": "评论", "cue": "s03_step4" }
+    ]
+  },
+  {
+    "id": "s04_01",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "光说没用，直接把半个月跑出来的三条65秒小爆款后台数据放一起对比。",
+    "ttsText": "光说没用，直接把半个月跑出来的三条65秒小爆款后台数据放一起对比。",
+    "cue": "three_cards_in",
+    "subCues": [
+      { "match": "三条", "cue": "s04_slots" }
+    ]
+  },
+  {
+    "id": "s04_02",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "第一条《跟父亲跑长途的那七天》：3万播放，完播25.59%，平均看了49.53秒，评论46条，涨粉48个。",
+    "ttsText": "第一条，跟父亲跑长途的那七天：3万播放，完播25.59%，平均看了49.53秒，评论46条，涨粉48个。",
+    "cue": "card_1_focus",
+    "subCues": [
+      { "match": "第一条", "cue": "s04_c1_flip" },
+      { "match": "3万", "cue": "s04_c1_views" },
+      { "match": "25.59", "cue": "s04_c1_comp" },
+      { "match": "46", "cue": "s04_c1_comm" }
+    ]
+  },
+  {
+    "id": "s04_03",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "第二条《师恩照亮我一生》：3.2万播放，完播拉到34.26%，平均看59.43秒，点赞895、心心453翻倍，评论169条。",
+    "ttsText": "第二条，师恩照亮我一生：3.2万播放，完播拉到34.26%，平均看59.43秒，点赞895、心心453翻倍，评论169条。",
+    "cue": "card_2_focus",
+    "subCues": [
+      { "match": "第二条", "cue": "s04_c2_flip" },
+      { "match": "3.2", "cue": "s04_c2_views" },
+      { "match": "34.26", "cue": "s04_c2_comp" },
+      { "match": "895", "cue": "s04_c2_likes" },
+      { "match": "169", "cue": "s04_c2_comm" }
+    ]
+  },
+  {
+    "id": "s04_04",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "第三条《等不来的道歉》：5.9万播放，完播冲到38.11%，平均看了64.07秒，评论直接炸到503条，涨粉75个！",
+    "ttsText": "第三条，等不来的道歉：5.9万播放，完播冲到38.11%，平均看了64.07秒，评论直接炸到503条，涨粉75个！",
+    "cue": "card_3_focus",
+    "subCues": [
+      { "match": "第三条", "cue": "s04_c3_flip" },
+      { "match": "5.9", "cue": "s04_c3_views" },
+      { "match": "38.11", "cue": "s04_c3_comp" },
+      { "match": "503", "cue": "s04_c3_comm" }
+    ]
+  },
+  {
+    "id": "s04_05",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "你看一个很有意思的现象：《师恩》的点赞和红心其实比《道歉》高得多，但《道歉》的播放却几乎翻了一倍。",
+    "ttsText": "你看一个很有意思的现象：师恩的点赞和红心其实比道歉高得多，但道歉的播放却几乎翻了一倍。",
+    "cue": "insight_compare",
+    "subCues": [
+      { "match": "师恩", "cue": "s04_dim_c1" },
+      { "match": "翻了一倍", "cue": "s04_double_badge" }
+    ]
+  },
+  {
+    "id": "s04_06",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "核心差距就在两点：完播率咬得更死，而且它戳中了很多人童年的委屈，把评论区彻底引爆了。",
+    "ttsText": "核心差距就在两点，完播率咬得更死，而且它戳中了很多人童年的委屈，把评论区彻底引爆了。",
+    "cue": "insight_highlight",
+    "subCues": [
+      { "match": "完播", "cue": "s04_pulse_comp" },
+      { "match": "评论", "cue": "s04_pulse_comm" }
+    ]
+  },
+  {
+    "id": "s04_07",
+    "sceneId": "data",
+    "stepIndex": 3,
+    "stepLabel": "数据复盘",
+    "displayText": "所以底层逻辑很清晰：情感赛道必须调动情绪，而技能知识号必须给出实打实的价值——让人省时间或少踩坑。",
+    "ttsText": "所以底层逻辑很清晰：情感赛道必须调动情绪，而技能知识号必须给出实打实的价值，让人省时间或少踩坑。",
+    "cue": "dual_formula",
+    "subCues": [
+      { "match": "情感", "cue": "s04_f_emo" },
+      { "match": "知识", "cue": "s04_f_know" }
+    ]
+  },
+  {
+    "id": "s05_01",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "结合这半个月实战，给刚起步的新手两条最实在的建议。",
+    "ttsText": "结合这半个月实战，给刚起步的新手两条最实在的建议。",
+    "cue": "playbook_intro",
+    "subCues": []
+  },
+  {
+    "id": "s05_02",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "第一，宁可少而精，别拿低质水货凑数。",
+    "ttsText": "第一，宁可少而精，别拿低质水货凑数。",
+    "cue": "quality_first",
+    "subCues": [
+      { "match": "第一", "cue": "s05_left_card" }
+    ]
+  },
+  {
+    "id": "s05_03",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "我一开始也天天盯着100粉焦急，后来才看明白：好作品的吸粉是指数级的，有人一条就能涨上千粉。",
+    "ttsText": "我一开始也天天盯着100粉焦急，后来才看明白，好作品的吸粉是指数级的，有人一条就能涨上千粉。",
+    "cue": "growth_curve",
+    "subCues": [
+      { "match": "100", "cue": "s05_flat_line" },
+      { "match": "指数", "cue": "s05_exp_line" },
+      { "match": "上千", "cue": "s05_k_badge" }
+    ]
+  },
+  {
+    "id": "s05_04",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "只要保持内容垂直和规律更新，把精力花在打磨单篇质量上，比硬水数量划算得多。",
+    "ttsText": "只要保持内容垂直和规律更新，把精力花在打磨单篇质量上，比硬水数量划算得多。",
+    "cue": "vertical_consistency",
+    "subCues": [
+      { "match": "垂直", "cue": "s05_pill_1" },
+      { "match": "规律", "cue": "s05_pill_2" },
+      { "match": "质量", "cue": "s05_pill_3" }
+    ]
+  },
+  {
+    "id": "s05_05",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "第二，憋不出选题别硬憋，先学会站在同赛道爆款肩膀上改写。",
+    "ttsText": "第二，憋不出选题别硬憋，先学会站在同赛道爆款肩膀上改写。",
+    "cue": "remix_intro",
+    "subCues": [
+      { "match": "第二", "cue": "s05_right_card" }
+    ]
+  },
+  {
+    "id": "s05_06",
+    "sceneId": "playbook",
+    "stepIndex": 4,
+    "stepLabel": "起号实操",
+    "displayText": "成熟的爆款情绪核已经被市场验证过了，你可以保留核心冲突，只换视角和细节——比如把小姨的故事改成姐姐或妹妹视角，下限绝不会差。",
+    "ttsText": "成熟的爆款情绪核已经被市场验证过了，你可以保留核心冲突，只换视角和细节，比如把小姨的故事改成姐姐或妹妹视角，下限绝不会差。",
+    "cue": "perspective_swap",
+    "subCues": [
+      { "match": "情绪", "cue": "s05_core_lock" },
+      { "match": "小姨", "cue": "s05_aunt" },
+      { "match": "姐姐", "cue": "s05_sister_flip" },
+      { "match": "下限", "cue": "s05_floor_badge" }
+    ]
+  },
+  {
+    "id": "s06_01",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "最后回到大家最关心的算账环节。",
+    "ttsText": "最后回到大家最关心的算账环节。",
+    "cue": "roi_intro",
+    "subCues": []
+  },
+  {
+    "id": "s06_02",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "前面《长途》和《师恩》发得早，还没开分成；但《等不来的道歉》是全程完整参与了分成计划的。",
+    "ttsText": "前面长途和师恩发得早，还没开分成；但等不来的道歉是全程完整参与了分成计划的。",
+    "cue": "plan_timeline",
+    "subCues": [
+      { "match": "长途", "cue": "s06_pre_plan" },
+      { "match": "道歉", "cue": "s06_full_plan" }
+    ]
+  },
+  {
+    "id": "s06_03",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "5.9万播放、503条评论、38%的完播，最后结算只有3块9毛3；半个月累计158,921播放，总收益才5块04。",
+    "ttsText": "5.9万播放、503条评论、38%的完播，最后结算只有3块9毛3；半个月累计15万8千多播放，总收益才5块04。",
+    "cue": "roi_numbers",
+    "subCues": [
+      { "match": "5.9", "cue": "s06_rev_card" },
+      { "match": "3块", "cue": "s06_rev_393" },
+      { "match": "15", "cue": "s06_rev_504" }
+    ]
+  },
+  {
+    "id": "s06_04",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "而我做一篇就要花1到2个小时、外加5块钱成本——跑出一篇近6万播放的爆款，分成还没打平这一篇的5块钱制作费。",
+    "ttsText": "而我做一篇就要花1到2个小时、外加5块钱成本，跑出一篇近6万播放的爆款，分成还没打平这一篇的5块钱制作费。",
+    "cue": "roi_deficit",
+    "subCues": [
+      { "match": "1", "cue": "s06_cost_card" },
+      { "match": "打平", "cue": "s06_deficit_stamp" }
+    ]
+  },
+  {
+    "id": "s06_05",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "现在各行各业卷自媒体卷得仿佛账号比人口还多，当然账号做起来以后还有接广、带货等变现路子，不能只看前期分成；",
+    "ttsText": "现在各行各业卷自媒体卷得仿佛账号比人口还多，当然账号做起来以后还有接广、带货等变现路子，不能只看前期分成；",
+    "cue": "market_crowded",
+    "subCues": [
+      { "match": "人口", "cue": "s06_crowd_card" },
+      { "match": "接广", "cue": "s06_other_rev" }
+    ]
+  },
+  {
+    "id": "s06_06",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "但入场前真得想清楚：这个赛道的投入产出比，你能不能长期熬下去？",
+    "ttsText": "但入场前真得想清楚，这个赛道的投入产出比，你能不能长期熬下去？",
+    "cue": "roi_question",
+    "subCues": [
+      { "match": "投入产出", "cue": "s06_roi_hl" }
+    ]
+  },
+  {
+    "id": "s06_07",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "对我来说，这半个月算交了一笔极低成本的学费；接下来我也准备把经验沉淀下来，切回我真正想做的知识分享赛道——就像你现在看到的这条视频一样。",
+    "ttsText": "对我来说，这半个月算交了一笔极低成本的学费；接下来我也准备把经验沉淀下来，切回我真正想做的知识分享赛道，就像你现在看到的这条视频一样。",
+    "cue": "pivot_meta",
+    "subCues": [
+      { "match": "学费", "cue": "s06_tuition" },
+      { "match": "知识分享", "cue": "s06_pivot_card" },
+      { "match": "这条视频", "cue": "s06_meta_tag" }
+    ]
+  },
+  {
+    "id": "s06_08",
+    "sceneId": "roi",
+    "stepIndex": 5,
+    "stepLabel": "算账反思",
+    "displayText": "如果你也在做视频号，你单条最高播放分了多少钱？或者你觉得我下一步该继续死磕故事号，还是转型知识动画？评论区聊聊你的真实战绩。",
+    "ttsText": "如果你也在做视频号，你单条最高播放分了多少钱？或者你觉得我下一步该继续死磕故事号，还是转型知识动画？评论区聊聊你的真实战绩。",
+    "cue": "closing_cta",
+    "subCues": [
+      { "match": "如果", "cue": "s06_cta_box" }
+    ]
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "name": "shipinhao-review-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "视频号半个月实战复盘 - Remotion 16:9 知识分享动画工程",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "build": "remotion render src/index.ts ShipinhaoReview out/视频号半个月复盘_成片.mp4",
+    "still": "remotion still src/index.ts ShipinhaoReview",
+    "tts:preview": "python scripts/generate_preview_tts.py",
+    "tts:volc": "python scripts/generate_volcengine_tts.py"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.543",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.543"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.6.3"
+  }
+}

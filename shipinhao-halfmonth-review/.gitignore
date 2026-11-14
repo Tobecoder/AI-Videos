@@ -1,0 +1,10 @@
+node_modules/
+build/
+out/
+.env
+*.local
+public/audio/preview_*.mp3
+__pycache__/
+.venv/
+*.pyc
+scratch/
